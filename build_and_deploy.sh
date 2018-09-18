@@ -1,6 +1,6 @@
 #!/bin/sh
 
-GOOS=linux GOARCH=386 go build -o auth
+GOOS=linux GOARCH=386 go build
 
 gcloud compute scp auth auth:~
 gcloud compute ssh auth --command="sudo mv /home/atec/auth /usr/sbin/"
