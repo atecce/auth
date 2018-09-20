@@ -7,6 +7,22 @@ import (
 	"net/http"
 )
 
+func get(client *http.Client, req *http.Request) string {
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer res.Body.Close()
+
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return string(b)
+}
+
 func main() {
 
 	tr := &http.Transport{
@@ -15,22 +31,18 @@ func main() {
 
 	client := &http.Client{Transport: tr}
 
-	req, _ := http.NewRequest("GET", "https://35.237.184.72/music", nil)
-
-	res, err := client.Do(req)
+	req, err := http.NewRequest("GET", "https://35.237.184.72/music", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer res.Body.Close()
 
-	b, _ := ioutil.ReadAll(res.Body)
+	res := get(client, req)
 
-	req, _ = http.NewRequest("GET", "https://api.music.apple.com/v1/catalog/us/songs/203709340", nil)
-	req.Header.Add("Authorization", "Bearer "+string(b))
+	req, err = http.NewRequest("GET", "https://api.music.apple.com/v1/catalog/us/songs/203709340", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+	req.Header.Add("Authorization", "Bearer "+res)
 
-	res, _ = client.Do(req)
-	b, _ = ioutil.ReadAll(res.Body)
-	defer res.Body.Close()
-
-	println(string(b))
+	println(get(client, req))
 }
