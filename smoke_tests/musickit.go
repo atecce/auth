@@ -31,14 +31,14 @@ func get(req *http.Request) string {
 
 func main() {
 
-	req, err := http.NewRequest("GET", "https://35.237.184.72/music", nil)
+	req, err := http.NewRequest(http.MethodGet, "https://35.237.184.72/music", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	res := get(req)
 
-	req, err = http.NewRequest("GET", "https://api.music.apple.com/v1/catalog/us/songs/203709340", nil)
+	req, err = http.NewRequest(http.MethodGet, "https://api.music.apple.com/v1/catalog/us/songs/203709340", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
