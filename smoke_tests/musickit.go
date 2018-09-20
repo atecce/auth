@@ -29,19 +29,23 @@ func get(req *http.Request) string {
 	return string(b)
 }
 
-func main() {
+func newReq(url string) *http.Request {
 
-	req, err := http.NewRequest(http.MethodGet, "https://35.237.184.72/music", nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	return req
+}
+
+func main() {
+
+	req := newReq("https://35.237.184.72/music")
 
 	res := get(req)
 
-	req, err = http.NewRequest(http.MethodGet, "https://api.music.apple.com/v1/catalog/us/songs/203709340", nil)
-	if err != nil {
-		fmt.Println(err)
-	}
+	req = newReq("https://api.music.apple.com/v1/catalog/us/songs/203709340")
 	req.Header.Add("Authorization", "Bearer "+res)
 
 	println(get(req))
