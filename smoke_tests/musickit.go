@@ -41,12 +41,8 @@ func newReq(url string) *http.Request {
 
 func main() {
 
-	req := newReq("https://35.237.184.72/music")
-
-	res := get(req)
-
-	req = newReq("https://api.music.apple.com/v1/catalog/us/songs/203709340")
-	req.Header.Add("Authorization", "Bearer "+res)
+	req := newReq("https://api.music.apple.com/v1/catalog/us/songs/203709340")
+	req.Header.Add("Authorization", "Bearer "+get(newReq("https://auth.atec.pub/music")))
 
 	println(get(req))
 }
