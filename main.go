@@ -23,7 +23,6 @@ import (
 
 const (
 	cat = "kitjs/AuthKey_"
-	ext = ".p8"
 
 	alg = "ES256"
 	iss = "Y82E2K77P5"
@@ -53,7 +52,7 @@ func init() {
 		if svc == "cloud" {
 			path += "cloudkit/eckey.pem"
 		} else {
-			path += "/" + svc + cat + kid + ext
+			path += "/" + svc + cat + kid + ".p8"
 		}
 		fmt.Println("loading key from path: " + path)
 
