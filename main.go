@@ -39,31 +39,23 @@ var (
 	kids = map[string]string{
 		"music": "CUG44HA5T5",
 		"map":   "YKVC29UG5H",
+		"cloud": "",
 	}
 	keys = make(map[string]*ecdsa.PrivateKey)
 )
 
+// loads keys
 func init() {
-
-	var err error
-
-	b, err := ioutil.ReadFile(etc + "cloudkit/eckey.pem")
-	if err != nil {
-		log.Fatal("reading cloudkit pem:", err)
-	}
-	block, _ := pem.Decode(b)
-
-	priv, err := x509.ParseECPrivateKey(block.Bytes)
-	if err != nil {
-		log.Fatal("parsing cloudkit ec key:", err)
-	}
-
-	keys["cloud"] = priv
 
 	for svc, kid := range kids {
 
-		path := etc + "/" + svc + cat + kid + ext
-		fmt.Println("loading auth key from path: " + path)
+		path := etc
+		if svc == "cloud" {
+			path += "cloudkit/eckey.pem"
+		} else {
+			path += "/" + svc + cat + kid + ext
+		}
+		fmt.Println("loading key from path: " + path)
 
 		b, err := ioutil.ReadFile(path)
 		if err != nil {
@@ -71,12 +63,21 @@ func init() {
 		}
 		block, _ := pem.Decode(b)
 
-		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-		if err != nil {
-			log.Fatal("parsing block:", err)
+		var key *ecdsa.PrivateKey
+		if svc == "cloud" {
+			key, err = x509.ParseECPrivateKey(block.Bytes)
+			if err != nil {
+				log.Fatal("parsing cloudkit ec key:", err)
+			}
+		} else {
+			tmp, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+			if err != nil {
+				log.Fatal("parsing block:", err)
+			}
+			key = tmp.(*ecdsa.PrivateKey)
 		}
 
-		keys[svc] = key.(*ecdsa.PrivateKey)
+		keys[svc] = key
 	}
 }
 
