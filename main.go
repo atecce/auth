@@ -26,14 +26,15 @@ const (
 
 	alg = "ES256"
 	iss = "Y82E2K77P5"
+
+	ckPath   = "/database/1/iCloud.telos.atec/development/public/records/modify"
+	ckHeader = "X-Apple-CloudKit-Request-"
 )
 
 var (
 	etc = os.Getenv("ETC")
 
 	client http.Client
-
-	path = "/database/1/iCloud.telos.atec/development/public/records/modify"
 
 	kids = map[string]string{
 		"music": "CUG44HA5T5",
@@ -108,7 +109,7 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 	h.Write(payload)
 	body := base64.StdEncoding.EncodeToString(h.Sum(nil))
 
-	msg := strings.Join([]string{date, body, path}, ":")
+	msg := strings.Join([]string{date, body, ckPath}, ":")
 	h = sha256.New()
 	h.Write([]byte(msg))
 
@@ -117,11 +118,10 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 		fmt.Println("signing msg:", err)
 	}
 	encodedSig := string(base64.StdEncoding.EncodeToString(sig))
-
-	req, _ := http.NewRequest(http.MethodPost, "https://api.apple-cloudkit.com"+path, bytes.NewBuffer(payload))
-	req.Header.Set("X-Apple-CloudKit-Request-KeyID", "b9f504ff7c0ef5d8b1dc6a1d12e597b3ab5fb9a8e6f24632486c15fb2a8d7f3e")
-	req.Header.Set("X-Apple-CloudKit-Request-ISO8601Date", date)
-	req.Header.Set("X-Apple-CloudKit-Request-SignatureV1", encodedSig)
+	req, _ := http.NewRequest(http.MethodPost, "https://api.apple-cloudkit.com"+ckPath, bytes.NewBuffer(payload))
+	req.Header.Set(ckHeader+"KeyID", "b9f504ff7c0ef5d8b1dc6a1d12e597b3ab5fb9a8e6f24632486c15fb2a8d7f3e")
+	req.Header.Set(ckHeader+"ISO8601Date", date)
+	req.Header.Set(ckHeader+"SignatureV1", encodedSig)
 
 	res, err := client.Do(req)
 	if err != nil {
