@@ -19,7 +19,6 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
-	"github.com/sideshow/apns2/token"
 )
 
 const (
@@ -66,12 +65,18 @@ func init() {
 		path := etc + "/" + svc + cat + kid + ext
 		fmt.Println("loading auth key from path: " + path)
 
-		key, err := token.AuthKeyFromFile(path)
+		b, err := ioutil.ReadFile(path)
 		if err != nil {
-			fmt.Println("reading p8 file: " + err.Error())
+			log.Fatal("reading p8 file:", err)
+		}
+		block, _ := pem.Decode(b)
+
+		key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			log.Fatal("parsing block:", err)
 		}
 
-		keys[svc] = key
+		keys[svc] = key.(*ecdsa.PrivateKey)
 	}
 }
 
