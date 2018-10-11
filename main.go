@@ -118,6 +118,7 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 		fmt.Println("signing msg:", err)
 	}
 	encodedSig := string(base64.StdEncoding.EncodeToString(sig))
+
 	req, _ := http.NewRequest(http.MethodPost, "https://api.apple-cloudkit.com"+ckPath, bytes.NewBuffer(payload))
 	req.Header.Set(ckPrefix+"KeyID", "b9f504ff7c0ef5d8b1dc6a1d12e597b3ab5fb9a8e6f24632486c15fb2a8d7f3e")
 	req.Header.Set(ckPrefix+"ISO8601Date", date)
