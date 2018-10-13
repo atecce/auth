@@ -107,12 +107,10 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 
 	h := sha256.New()
 	h.Write(payload)
-	body := base64.StdEncoding.EncodeToString(h.Sum(nil))
+	msg := strings.Join([]string{date, base64.StdEncoding.EncodeToString(h.Sum(nil)), ckPath}, ":")
 
-	msg := strings.Join([]string{date, body, ckPath}, ":")
 	h = sha256.New()
 	h.Write([]byte(msg))
-
 	sig, err := keys["cloud"].Sign(rand.Reader, h.Sum(nil), crypto.SHA256)
 	if err != nil {
 		fmt.Println("signing msg:", err)
