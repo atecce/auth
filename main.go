@@ -85,6 +85,22 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 
 	fmt.Println(r.Method + " " + r.URL.Path + " " + r.RemoteAddr + " " + r.Host)
 
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	if r.Method != http.MethodGet || r.Host != "auth.atec.pub" || r.URL.Path != "/" {
+		w.WriteHeader(http.StatusBadRequest)
+		return false
+	}
+
+	return true
+}
+
+func hit(w http.ResponseWriter, r *http.Request) {
+
+	if ok := middleware(w, r); !ok {
+		return
+	}
+
 	payload := []byte(`
 {
 	"operations": [
@@ -129,22 +145,6 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 
 	b, _ := ioutil.ReadAll(res.Body)
 	fmt.Println(string(b))
-
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusBadRequest)
-		return false
-	}
-
-	return true
-}
-
-func hit(w http.ResponseWriter, r *http.Request) {
-
-	if ok := middleware(w, r); !ok {
-		return
-	}
 
 	w.WriteHeader(http.StatusOK)
 }
