@@ -20,9 +20,6 @@ const (
 
 	alg = "ES256"
 	iss = "Y82E2K77P5"
-
-	ckPath   = "/database/1/iCloud.telos.atec/development/public/records/modify"
-	ckPrefix = "X-Apple-CloudKit-Request-"
 )
 
 var (

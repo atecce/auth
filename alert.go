@@ -18,6 +18,11 @@ import (
 	"time"
 )
 
+const (
+	ckPath   = "/database/1/iCloud.telos.atec/development/public/records/modify"
+	ckPrefix = "X-Apple-CloudKit-Request-"
+)
+
 type alert struct {
 	Operations []operation `json:"operations"`
 }
