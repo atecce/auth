@@ -1,4 +1,4 @@
-package main
+package alert
 
 import (
 	"bytes"
@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -51,7 +52,7 @@ type value struct {
 var key *ecdsa.PrivateKey
 
 func init() {
-	path := etc + "cloudkit/eckey.pem"
+	path := os.Getenv("ETC") + "cloudkit/eckey.pem"
 	fmt.Println("loading key from path: " + path)
 
 	b, err := ioutil.ReadFile(path)
@@ -66,9 +67,25 @@ func init() {
 	}
 }
 
-func send(a alert) error {
+// Send makes an HTTP request to CloudKit with a signed payload
+func Send(r *http.Request) error {
 
-	payload, err := json.Marshal(a)
+	payload, err := json.Marshal(alert{
+		Operations: []operation{
+			operation{
+				OperationType: "create",
+				Record: record{
+					RecordType: "Hit",
+					Fields: fields{
+						Method:     value{r.Method},
+						Path:       value{r.URL.Path},
+						RemoteAddr: value{r.RemoteAddr},
+						Host:       value{r.Host},
+					},
+				},
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}

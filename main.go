@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/atecce/auth/alert"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
 )
@@ -77,22 +78,7 @@ func hit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := send(alert{
-		Operations: []operation{
-			operation{
-				OperationType: "create",
-				Record: record{
-					RecordType: "Hit",
-					Fields: fields{
-						Method:     value{r.Method},
-						Path:       value{r.URL.Path},
-						RemoteAddr: value{r.RemoteAddr},
-						Host:       value{r.Host},
-					},
-				},
-			},
-		},
-	})
+	err := alert.Send(r)
 	if err != nil {
 		fmt.Println("alerting:", err)
 	}
