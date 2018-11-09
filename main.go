@@ -119,6 +119,15 @@ func hit(w http.ResponseWriter, r *http.Request) {
 	]
 }`)
 
+	err := alert(payload)
+	if err != nil {
+		fmt.Println("alerting:", err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func alert(payload []byte) error {
 	date := time.Now().UTC().Format(time.RFC3339)
 
 	h := sha256.New()
@@ -129,7 +138,7 @@ func hit(w http.ResponseWriter, r *http.Request) {
 	h.Write([]byte(msg))
 	sig, err := keys["cloud"].Sign(rand.Reader, h.Sum(nil), crypto.SHA256)
 	if err != nil {
-		fmt.Println("signing msg:", err)
+		return err
 	}
 	encodedSig := string(base64.StdEncoding.EncodeToString(sig))
 
@@ -141,12 +150,14 @@ func hit(w http.ResponseWriter, r *http.Request) {
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Println("doing req:", err)
+		return err
 	}
 
+	// TODO(atec): gross
 	b, _ := ioutil.ReadAll(res.Body)
 	fmt.Println(string(b))
 
-	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
 func sign(w http.ResponseWriter, r *http.Request) {
