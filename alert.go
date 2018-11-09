@@ -84,7 +84,7 @@ func send(a alert) error {
 	req.Header.Set(ckPrefix+"ISO8601Date", date)
 	req.Header.Set(ckPrefix+"SignatureV1", encodedSig)
 
-	res, err := client.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Println("doing req:", err)
 		return err

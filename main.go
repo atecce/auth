@@ -28,8 +28,6 @@ const (
 var (
 	etc = os.Getenv("ETC")
 
-	client http.Client
-
 	kids = map[string]string{
 		"music": "CUG44HA5T5",
 		"map":   "YKVC29UG5H",
