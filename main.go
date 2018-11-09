@@ -1,21 +1,14 @@
 package main
 
 import (
-	"bytes"
-	"crypto"
 	"crypto/ecdsa"
-	"crypto/rand"
-	"crypto/sha256"
 	"crypto/x509"
-	"encoding/base64"
-	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -40,7 +33,6 @@ var (
 	kids = map[string]string{
 		"music": "CUG44HA5T5",
 		"map":   "YKVC29UG5H",
-		"cloud": "",
 	}
 	keys = make(map[string]*ecdsa.PrivateKey)
 )
@@ -50,12 +42,7 @@ func init() {
 
 	for svc, kid := range kids {
 
-		path := etc
-		if svc == "cloud" {
-			path += "cloudkit/eckey.pem"
-		} else {
-			path += "/" + svc + cat + kid + ".p8"
-		}
+		path := etc + "/" + svc + cat + kid + ".p8"
 		fmt.Println("loading key from path: " + path)
 
 		b, err := ioutil.ReadFile(path)
@@ -65,18 +52,11 @@ func init() {
 		block, _ := pem.Decode(b)
 
 		var key *ecdsa.PrivateKey
-		if svc == "cloud" {
-			key, err = x509.ParseECPrivateKey(block.Bytes)
-			if err != nil {
-				log.Fatal("parsing cloudkit ec key:", err)
-			}
-		} else {
-			tmp, err := x509.ParsePKCS8PrivateKey(block.Bytes)
-			if err != nil {
-				log.Fatal("parsing block:", err)
-			}
-			key = tmp.(*ecdsa.PrivateKey)
+		tmp, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			log.Fatal("parsing block:", err)
 		}
+		key = tmp.(*ecdsa.PrivateKey)
 
 		keys[svc] = key
 	}
@@ -96,75 +76,13 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-type alert struct {
-	Operations []operation `json:"operations"`
-}
-
-type operation struct {
-	OperationType string `json:"operationType"`
-	Record        record `json:"record"`
-}
-
-type record struct {
-	RecordType string `json:"recordType"`
-	Fields     fields `json:"fields"`
-}
-
-type fields struct {
-	Method     value `json:"method"`
-	Path       value `json:"path"`
-	RemoteAddr value `json:"remoteAddr"`
-	Host       value `json:"host"`
-}
-
-type value struct {
-	Value string `json:"value"`
-}
-
-func (a *alert) send() error {
-
-	payload, _ := json.Marshal(a)
-
-	date := time.Now().UTC().Format(time.RFC3339)
-
-	h := sha256.New()
-	h.Write(payload)
-	msg := strings.Join([]string{date, base64.StdEncoding.EncodeToString(h.Sum(nil)), ckPath}, ":")
-
-	h = sha256.New()
-	h.Write([]byte(msg))
-	sig, err := keys["cloud"].Sign(rand.Reader, h.Sum(nil), crypto.SHA256)
-	if err != nil {
-		return err
-	}
-	encodedSig := string(base64.StdEncoding.EncodeToString(sig))
-
-	req, _ := http.NewRequest(http.MethodPost, "https://api.apple-cloudkit.com"+ckPath, bytes.NewBuffer(payload))
-	req.Header.Set(ckPrefix+"KeyID", "b9f504ff7c0ef5d8b1dc6a1d12e597b3ab5fb9a8e6f24632486c15fb2a8d7f3e")
-	req.Header.Set(ckPrefix+"ISO8601Date", date)
-	req.Header.Set(ckPrefix+"SignatureV1", encodedSig)
-
-	res, err := client.Do(req)
-	if err != nil {
-		fmt.Println("doing req:", err)
-		return err
-	}
-
-	// TODO(atec): gross
-	b, _ := ioutil.ReadAll(res.Body)
-	fmt.Println(string(b))
-
-	return nil
-
-}
-
 func hit(w http.ResponseWriter, r *http.Request) {
 
 	if ok := middleware(w, r); !ok {
 		return
 	}
 
-	alert := alert{
+	err := send(alert{
 		Operations: []operation{
 			operation{
 				OperationType: "create",
@@ -179,9 +97,7 @@ func hit(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 		},
-	}
-
-	err := alert.send()
+	})
 	if err != nil {
 		fmt.Println("alerting:", err)
 	}
