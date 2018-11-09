@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -95,39 +96,35 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-func hit(w http.ResponseWriter, r *http.Request) {
-
-	if ok := middleware(w, r); !ok {
-		return
-	}
-
-	payload := []byte(`
-{
-	"operations": [
-		{
-			"operationType": "create",
-			"record": {
-				"recordType": "Hit",
-				"fields": {
-					"method": { "value": "` + r.Method + `" },
-					"path": { "value": "` + r.URL.Path + `" },
-					"remoteAddr": { "value": "` + r.RemoteAddr + `" },
-					"host": { "value": "` + r.Host + `" }
-				}
-			}
-		}
-	]
-}`)
-
-	err := alert(payload)
-	if err != nil {
-		fmt.Println("alerting:", err)
-	}
-
-	w.WriteHeader(http.StatusOK)
+type alert struct {
+	Operations []operation `json:"operations"`
 }
 
-func alert(payload []byte) error {
+type operation struct {
+	OperationType string `json:"operationType"`
+	Record        record `json:"record"`
+}
+
+type record struct {
+	RecordType string `json:"recordType"`
+	Fields     fields `json:"fields"`
+}
+
+type fields struct {
+	Method     value `json:"method"`
+	Path       value `json:"path"`
+	RemoteAddr value `json:"remoteAddr"`
+	Host       value `json:"host"`
+}
+
+type value struct {
+	Value string `json:"value"`
+}
+
+func (a *alert) send() error {
+
+	payload, _ := json.Marshal(a)
+
 	date := time.Now().UTC().Format(time.RFC3339)
 
 	h := sha256.New()
@@ -158,6 +155,38 @@ func alert(payload []byte) error {
 	fmt.Println(string(b))
 
 	return nil
+
+}
+
+func hit(w http.ResponseWriter, r *http.Request) {
+
+	if ok := middleware(w, r); !ok {
+		return
+	}
+
+	alert := alert{
+		Operations: []operation{
+			operation{
+				OperationType: "create",
+				Record: record{
+					RecordType: "Hit",
+					Fields: fields{
+						Method:     value{r.Method},
+						Path:       value{r.URL.Path},
+						RemoteAddr: value{r.RemoteAddr},
+						Host:       value{r.Host},
+					},
+				},
+			},
+		},
+	}
+
+	err := alert.send()
+	if err != nil {
+		fmt.Println("alerting:", err)
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func sign(w http.ResponseWriter, r *http.Request) {
