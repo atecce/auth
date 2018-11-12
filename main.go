@@ -14,6 +14,7 @@ import (
 	"github.com/atecce/auth/alert"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/mux"
+	"github.com/kr/pretty"
 )
 
 const (
@@ -58,13 +59,15 @@ func init() {
 	}
 }
 
+// TODO create different middleware for different endpoint
 func middleware(w http.ResponseWriter, r *http.Request) bool {
 
 	fmt.Println(r.Method + " " + r.URL.Path + " " + r.RemoteAddr + " " + r.Host)
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	if r.Method != http.MethodGet || r.Host != "auth.atec.pub" || r.URL.Path != "/" {
+	// TODO will double count hits (but allow music route)
+	if r.Method != http.MethodGet || r.Host != "auth.atec.pub" || (r.URL.Path != "/" && r.URL.Path != "/music") {
 		w.WriteHeader(http.StatusBadRequest)
 		return false
 	}
@@ -97,6 +100,8 @@ func sign(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+
+	pretty.Println("[DEBUG] signing key for svc:", svc)
 
 	jwtToken := &jwt.Token{
 		Header: map[string]interface{}{
