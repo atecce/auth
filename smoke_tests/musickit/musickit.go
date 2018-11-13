@@ -44,5 +44,5 @@ func main() {
 	req := newReq("https://api.music.apple.com/v1/catalog/us/songs/203709340")
 	req.Header.Add("Authorization", "Bearer "+get(newReq("https://auth.atec.pub/music")))
 
-	println(get(req))
+	fmt.Println(get(req))
 }
