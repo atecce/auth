@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package alert;
+
+service Alert {
+    rpc Put(Event) returns (Error) {}
+}
+
+message Event {
+    string message = 1;
+}
+
+message Error {
+    string description = 1;
+}
