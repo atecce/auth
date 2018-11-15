@@ -67,7 +67,7 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// TODO will double count hits (but allow music route)
-	if r.Method != http.MethodGet || r.Host != "auth.atec.pub" || (r.URL.Path != "/" && r.URL.Path != "/music") {
+	if r.Method != http.MethodGet || r.Host != "auth.atec.pub" || (r.URL.Path != "/" && r.URL.Path != "/music" && r.URL.Path != "/map") {
 		w.WriteHeader(http.StatusBadRequest)
 		return false
 	}
