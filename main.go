@@ -103,6 +103,8 @@ func sign(w http.ResponseWriter, r *http.Request) {
 
 	pretty.Println("[DEBUG] signing key for svc:", svc)
 
+	t := time.Now().Unix()
+
 	jwtToken := &jwt.Token{
 		Header: map[string]interface{}{
 			"alg": alg,
@@ -110,7 +112,8 @@ func sign(w http.ResponseWriter, r *http.Request) {
 		},
 		Claims: jwt.MapClaims{
 			"iss": iss,
-			"exp": time.Now().Unix() + 3000,
+			"iat": t,
+			"exp": t + 3000,
 		},
 		Method: jwt.SigningMethodES256,
 	}
