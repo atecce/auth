@@ -108,7 +108,8 @@ func Send(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set(ckPrefix+"KeyID", "b9f504ff7c0ef5d8b1dc6a1d12e597b3ab5fb9a8e6f24632486c15fb2a8d7f3e")
+	// TODO make KeyID configurable
+	req.Header.Set(ckPrefix+"KeyID", "8b1b74e90bf14d3869f296d39d71fa32a13a879d87c09089005cf72e5966c70a")
 	req.Header.Set(ckPrefix+"ISO8601Date", date)
 	req.Header.Set(ckPrefix+"SignatureV1", encodedSig)
 
@@ -123,7 +124,7 @@ func Send(r *http.Request) error {
 		fmt.Println("reading body:", err)
 		return err
 	}
-	fmt.Println(string(b))
+	fmt.Println("[INFO] alert:", string(b))
 
 	return nil
 }
