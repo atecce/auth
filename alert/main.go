@@ -133,7 +133,7 @@ func Send(r *http.Request) error {
 		fmt.Println("reading body:", err)
 		return err
 	}
-	fmt.Println("[INFO] alert:", string(b))
+	fmt.Println("[INFO] alert.Send(r):", string(b))
 
 	return nil
 }
