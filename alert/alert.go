@@ -43,6 +43,7 @@ type fields struct {
 	Path       value `json:"path"`
 	RemoteAddr value `json:"remoteAddr"`
 	Host       value `json:"host"`
+	Body       value `json:"body"`
 }
 
 type value struct {
@@ -70,6 +71,12 @@ func init() {
 // Send makes an HTTP request to CloudKit with a signed payload
 func Send(r *http.Request) error {
 
+	// DoS vector
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Println("[ERROR] alert.Send(r): reading body", err)
+	}
+
 	payload, err := json.Marshal(alert{
 		Operations: []operation{
 			operation{
@@ -81,6 +88,7 @@ func Send(r *http.Request) error {
 						Path:       value{r.URL.Path},
 						RemoteAddr: value{r.RemoteAddr},
 						Host:       value{r.Host},
+						Body:       value{string(body)},
 					},
 				},
 			},

@@ -66,8 +66,8 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	// TODO will double count hits (but allow music route)
-	if r.Method != http.MethodGet || r.Host != "auth.atec.pub" || (r.URL.Path != "/" && r.URL.Path != "/music" && r.URL.Path != "/map") {
+	// stops random bots
+	if r.Host != "auth.atec.pub" {
 		w.WriteHeader(http.StatusBadRequest)
 		return false
 	}
@@ -75,9 +75,14 @@ func middleware(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-func hit(w http.ResponseWriter, r *http.Request) {
+func track(w http.ResponseWriter, r *http.Request) {
 
 	if ok := middleware(w, r); !ok {
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -126,14 +131,13 @@ func sign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-
 	w.Write([]byte(bearer))
 }
 
 func main() {
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", hit)
+	r.HandleFunc("/", track)
 	r.HandleFunc("/{svc}", sign)
 
 	authEtc := etc + "auth"
