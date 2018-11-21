@@ -75,6 +75,7 @@ func Send(r *http.Request) error {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("[ERROR] alert.Send(r): reading body", err)
+		return err
 	}
 
 	payload, err := json.Marshal(alert{
