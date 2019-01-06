@@ -52,6 +52,7 @@ type value struct {
 var key *ecdsa.PrivateKey
 
 func init() {
+
 	path := os.Getenv("ETC") + "cloudkit/eckey.pem"
 	fmt.Println("loading key from path: " + path)
 
@@ -104,12 +105,14 @@ func Send(r *http.Request) error {
 	}
 	encodedSig := string(base64.StdEncoding.EncodeToString(sig))
 
+	fmt.Println("encodedSig:", encodedSig)
+
 	req, err := http.NewRequest(http.MethodPost, "https://api.apple-cloudkit.com"+ckPath, bytes.NewBuffer(payload))
 	if err != nil {
 		return err
 	}
 	// TODO make KeyID configurable
-	req.Header.Set(ckPrefix+"KeyID", "8b1b74e90bf14d3869f296d39d71fa32a13a879d87c09089005cf72e5966c70a")
+	req.Header.Set(ckPrefix+"KeyID", "e43466ea7bf8a569c29a86e5392fec03f098a85b0c684761ff5b6f891a602cf2")
 	req.Header.Set(ckPrefix+"ISO8601Date", date)
 	req.Header.Set(ckPrefix+"SignatureV1", encodedSig)
 
