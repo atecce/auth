@@ -18,11 +18,11 @@ provider "google" {
     zone = "us-east1-b"
 }
 
-resource "google_compute_firewall" "provisioner" {
+resource "google_compute_firewall" "auth" {
 
-    name = "provisioner"
+    name = "auth"
     network = "default"
-    target_tags = ["provisioner"]
+    target_tags = ["auth"]
 
     source_ranges = ["0.0.0.0/0"]
     allow = {
@@ -53,7 +53,7 @@ resource "google_compute_instance" "default" {
         }
     }
 
-    tags = ["http-server", "https-server", "provisioner"]
+    tags = ["auth"]
 
     provisioner "remote-exec" {
         connection = {
@@ -116,7 +116,7 @@ resource "google_compute_instance" "default" {
             private_key = "${file("~/.ssh/google_compute_engine")}"
             timeout = "120s"
         }
-        source = "/keybase/private/atec/etc/auth/server.crt"
+        source = "/keybase/private/atec/etc/server.crt"
         destination = "/etc/auth/server.crt"
     }
 
@@ -127,7 +127,7 @@ resource "google_compute_instance" "default" {
             private_key = "${file("~/.ssh/google_compute_engine")}"
             timeout = "120s"
         }
-        source = "/keybase/private/atec/etc/auth/server.key"
+        source = "/keybase/private/atec/etc/server.key"
         destination = "/etc/auth/server.key"
     }
 
@@ -166,5 +166,5 @@ resource "google_compute_instance" "default" {
         ]
     }
 
-    depends_on = ["google_compute_firewall.provisioner"]
+    depends_on = ["google_compute_firewall.auth"]
 }
